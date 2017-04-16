@@ -56,7 +56,7 @@ public class CaroFrame extends JFrame implements ActionListener {
 	private String playerName1 = "NgÆ°á»�i chÆ¡i 1", playerName2 = "NgÆ°á»�i chÆ¡i 2";
 
 	private MyImage myImage = new MyImage();
-	private PlayerName selectPlayerFrame;
+	//private PlayerName selectPlayerFrame;
 
 	
 	
@@ -99,23 +99,23 @@ public class CaroFrame extends JFrame implements ActionListener {
 	}
 
 	private void selectPlayer() {
-		if (selectPlayerFrame == null) {
+		/*if (selectPlayerFrame == null) {
 			selectPlayerFrame = new PlayerName(this);
-		}
-		selectPlayerFrame.setVisible(true);
+		}*/
+		//selectPlayerFrame.setVisible(true);
 	}
 
 	public void updateStatus() {
-		playerName1 = selectPlayerFrame.getPlayerName1();
-		playerName2 = selectPlayerFrame.getPlayerName2();
+		//playerName1 = selectPlayerFrame.getPlayerName1();
+		//playerName2 = selectPlayerFrame.getPlayerName2();
 		caroGraphics.player = caroGraphics.playerRoot;
 		lbNamePlayerX.setText(playerName1);
 		lbNamePlayerO.setText(playerName2);
-		if (selectPlayerFrame.getStart() == 1) {
+		/*if (selectPlayerFrame.getStart() == 1) {
 			caroGraphics.playerRoot = true;
 		} else {
 			caroGraphics.playerRoot = false;
-		}
+		}*/
 		
 		caroGraphics.player = caroGraphics.playerRoot;
 		caroGraphics.setStatus();

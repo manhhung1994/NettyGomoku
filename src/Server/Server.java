@@ -5,8 +5,8 @@ import java.net.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
-
+import DataPackage.DataPackage;
+import DataPackage.TypeData;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -44,12 +44,14 @@ public class Server {
 	// the boolean that will be turned of to stop the server
 	private boolean keepGoing;
 	
+	
 	public static ChannelGroup channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
 	private EventLoopGroup bossGroup = new NioEventLoopGroup(); 
     private EventLoopGroup workerGroup = new NioEventLoopGroup();
     
-    
+    private RoomManager roomManager ;
+    private int tempRoom;
 	/*
 	 *  server constructor that receive the port to listen to for connection as parameter
 	 *  in console
@@ -67,6 +69,7 @@ public class Server {
 		sdf = new SimpleDateFormat("HH:mm:ss");
 		// ArrayList for the Client list
 		//al = new ArrayList<ClientThread>();
+		roomManager = new RoomManager(4);
 	}
 	
 	public void start() throws Exception {
@@ -89,11 +92,17 @@ public class Server {
 			        	@Override
 			            public void handlerAdded(ChannelHandlerContext ctx) throws Exception {  // (2)
 			                Channel incoming = ctx.channel();
-			                
+			                PlayerData data = new PlayerData(ctx.channel(), ctx.channel().localAddress() +"", 1);
 			                // Broadcast a message to multiple Channels
 			                //channels.writeAndFlush("[SERVER] - " + incoming.remoteAddress() + " handlerAdded\n");
 			                
-			                channels.add(ctx.channel());
+			               /* if(!roomManager.CheckFull(1))
+			                	
+			                {
+			                	System.out.println("size room 1 : " +roomManager.getRoom(1).size());
+			                	roomManager.getRoom(1).add(ctx.channel());
+			                }
+			                */
 			            }
 
 			            @Override
@@ -129,12 +138,37 @@ public class Server {
 
 						@Override
 						protected void channelRead0(ChannelHandlerContext ctx, Object s) throws Exception {
+							
+							//System.out.println(DataPackage.CheckTypeData(s.toString()).equals(TypeData.CHECK_ROOM));
+							if(DataPackage.CheckTypeData(s.toString()).equals(TypeData.CHECK_ROOM))
+							{
+								tempRoom =  DataPackage.RoomChoose(s.toString());
+								System.out.println("temp room" + tempRoom);
+								if(!roomManager.CheckFull(tempRoom))
+								{
+									roomManager.getRoom(tempRoom).add(ctx.channel());
+									if(roomManager.getRoom(tempRoom).size()==1)
+									{
+										ctx.channel().writeAndFlush(TypeData.POSITION+ "-1" +"\n");
+										System.out.println("Set vi tri 1 ");
+									}
+									else 
+									{
+										ctx.channel().writeAndFlush(TypeData.POSITION+ "-2" +"\n");	
+										System.out.println("Set vi tri 2 ");
+									}
+								}
+							}
+							else {
+								System.out.println("Khong check room nua");
+							}
 							Channel incoming = ctx.channel();
-			        		for (Channel channel : channels) {
+							
+			        		for (Channel channel : roomManager.getRoom(tempRoom)) {
 			                    if (channel != incoming){
 			                        channel.writeAndFlush( s + "\n");
 			                    } else {
-			                    	//channel.writeAndFlush("[you]" + s + "\n");
+			                    	channel.writeAndFlush("[you]" + s + "\n");
 			                    }
 			                }
 			        		System.out.print("[" +incoming.remoteAddress() +"] "+ s.toString()+"\n");

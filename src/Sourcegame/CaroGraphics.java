@@ -6,6 +6,7 @@ import java.awt.Event;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Point;
+import java.sql.Struct;
 import java.util.Vector;
 
 import javax.swing.Icon;
@@ -16,6 +17,9 @@ import javax.swing.JTextField;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.undo.UndoManager;
 
+import DataPackage.DataPackage;
+import DataPackage.TypeData;
+import Server.RoomManager;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -44,17 +48,21 @@ public class CaroGraphics extends JPanel {
 
 	private int sizeImg = sizeCell - 2;
 	public boolean player, playerRoot;
+	public boolean myTurn;
 	private Process process;
 
 	private MyImage myImage = new MyImage();
 	private Icon iconActive;
+	private Image _image;
 	private UndoManager undoManager = new UndoManager();
 	protected Vector<Point> pointVector;
-
+	
+	protected Vector<MaxtrixPoint> pointVector2;
 	public JTextField ipAddress = new JTextField("127.0.0.1");
 	public JTextField PORT = new JTextField("9696");
 	public JTextField playerName = new JTextField("Tu Manh Hung");
 	
+	private String chooseRoom;
 	private Channel channel;
 
 	private int winer = 0;
@@ -79,6 +87,7 @@ public class CaroGraphics extends JPanel {
 		process = new Process();
 		player = playerRoot;
 		pointVector = new Vector<Point>();
+		pointVector2 = new Vector<MaxtrixPoint>();
 		repaint();
 	}
 	private void connectDialog()
@@ -96,15 +105,34 @@ public class CaroGraphics extends JPanel {
 			
 		    if (true) {
 		    	new ClientRunning().start();
+		        String input = (String) JOptionPane.showInputDialog(null, "Choose now...",
+		            "[Gomoku]Choose Room ", JOptionPane.QUESTION_MESSAGE, null, // Use
+		                                                                            // default
+		                                                                            // icon
+		            TypeData.ROOM_NAME, // Array of choices
+		            TypeData.ROOM_NAME[0]); // Initial choice	
+
+		        switch(input)
+		        {
+			        case "Hải Dương Room 1" : 
+						System.out.println("ban chon " + TypeData.ROOM_NAME[0]);
+						CheckRoom(1);
+						break;
+			        case "Hải Dương Room 2" : 
+						System.out.println("ban chon " + TypeData.ROOM_NAME[1]);
+						CheckRoom(2);
+						break;
+			        case "Hải Dương Room 3" : 
+						System.out.println("ban chon " + TypeData.ROOM_NAME[2]);
+						CheckRoom(3);
+						break;
 		        
+			        default : System.out.println("Default");
+		        		break;
+		        }
 		    } else {
 		        System.out.println("login failed");
-		        final JOptionPane optionPane = new JOptionPane(
-		        	    "The only way to close this dialog is by\n"
-		        	    + "pressing one of the following buttons.\n"
-		        	    + "Do you understand?",
-		        	    JOptionPane.QUESTION_MESSAGE,
-		        	    JOptionPane.YES_NO_OPTION);
+		        
 		    }
 		} else {
 		    System.out.println("Login canceled");
@@ -112,7 +140,10 @@ public class CaroGraphics extends JPanel {
 		
 	}
 	
-	
+	public void CheckRoom(int index)
+	{
+		Send(TypeData.CHECK_ROOM + "-" + index);
+	}
 	class ClientRunning extends Thread {
 		public void run() {
 			EventLoopGroup group = new NioEventLoopGroup();
@@ -133,20 +164,30 @@ public class CaroGraphics extends JPanel {
 				        pipeline.addLast("handler", new SimpleChannelInboundHandler<String>() {
 
 							@Override
-							public void channelRead0(ChannelHandlerContext channel, String data) throws Exception {
-								
-								if(!pointVector.contains(StringToPoint(data)))
+							public void channelRead0(ChannelHandlerContext ctx, String data) throws Exception {
+								switch(DataPackage.CheckTypeData(data.toString()))
 								{
-									pointVector.addElement(StringToPoint(data));
-									repaint();
-								}
-								System.out.println("[channelread0]" +data);
-							}
-				        	
-						});
+									case TypeData.MATRIX :
 
-					}
-										
+										if(!pointVector2.contains(new MaxtrixPoint(StringToPoint(data), true)))
+												
+										{
+											pointVector2.addElement(new MaxtrixPoint(StringToPoint(data), false));
+											repaint();
+										}
+										break;
+									case TypeData.POSITION :
+										if(isPlayerRoot(data))
+										{
+											_image = myImage.imgCross;
+										}
+										else _image = myImage.imgNought;
+								}								
+								
+								System.out.println( data);
+							}			        	
+						});
+					}										
 				});
 				System.out.println("Connected");
 				channel = bootStrap.connect(ipAddress.getText(), Integer.parseInt(PORT.getText())).sync().channel();
@@ -159,16 +200,30 @@ public class CaroGraphics extends JPanel {
 			
 		}
 	}
+	
 	public Point StringToPoint(String data)
 	{
+		
 		String[] parts = data.split("-");
 		String part1 = parts[0];
 		String part2 = parts[1];
+		String part3 = parts[2];
 		System.out.println(part1 );
-		int x = (int) Float.parseFloat(part1);
-		int y = (int) Float.parseFloat(part2);
+		int x = (int) Float.parseFloat(part2);
+		int y = (int) Float.parseFloat(part3);
 		
 		return new Point(x,y);
+	}
+	public boolean isPlayerRoot(String data)
+	{		
+		String[] parts = data.split("-");
+		
+		int x = (int) Float.parseFloat(parts[1]);
+		
+		if(x==1) 
+			playerRoot = true;
+		else playerRoot = false;
+		return playerRoot;
 	}
 	public void Send(String data)
 	{
@@ -186,15 +241,33 @@ public class CaroGraphics extends JPanel {
 	}
 
 	private void drawImg(Graphics g) {
-		//System.out.println("Draw image");
-		//client.sendMessage(new ChatMessage(ChatMessage.MESSAGE,"Draw image"));
+		
 		boolean player = playerRoot;
-		for (int i = 0; i < pointVector.size(); i++) {
-			//Image image = player ? myImage.imgCross : myImage.imgNought;
-			Image image = myImage.imgCross;
-			Point point = convertPointToCaro(convertPoint(pointVector.get(i)));
+		for (int i = 0; i < pointVector2.size(); i++) {
+			Image image = null;
+			if(playerRoot)
+			{
+				image = myImage.imgCross;
+				if(pointVector2.get(i).myPoint)
+					image = myImage.imgCross;
+				else image = myImage.imgNought;
+			}
+			else 
+			{
+				image = myImage.imgNought;
+				if(pointVector2.get(i).myPoint)
+					image = myImage.imgNought;
+				else image = myImage.imgCross;
+				
+			}
+			//Point point = convertPointToCaro(convertPoint(pointVector.get(i)));
+			Point point = convertPointToCaro(convertPoint(pointVector2.get(i).point));
 			g.drawImage(image, point.x, point.y, null);
-			player = !player;
+			//player = !player;
+			
+			 
+			
+				
 		}
 		
 	}
@@ -241,13 +314,14 @@ public class CaroGraphics extends JPanel {
 
 
 		Point pointTemp = convertPoint(point);
-		Send(pointTemp.getX() + "-"+ pointTemp.getY());
+		Send(TypeData.MATRIX +"-" +pointTemp.getX() + "-"+ pointTemp.getY());
+		myTurn = false;
 		if (process.updateMatrix(player, convertPointToMaxtrix(pointTemp))) {
-			pointVector.addElement(point);
-			
-			undoManager.undoableEditHappened(new UndoableEditEvent(this,
+			//pointVector.addElement(point);
+			pointVector2.addElement(new MaxtrixPoint(point,true));
+			/*undoManager.undoableEditHappened(new UndoableEditEvent(this,
 					new UndoablePaintSquare(point, pointVector)));
-			
+			*/
 			repaint();
 			player = !player;
 			setStatus();

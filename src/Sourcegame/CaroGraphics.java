@@ -126,7 +126,18 @@ public class CaroGraphics extends JPanel {
 						System.out.println("ban chon " + TypeData.ROOM_NAME[2]);
 						CheckRoom(3);
 						break;
-		        
+			        case "Bắc Giang Room 1" : 
+						System.out.println("ban chon " + TypeData.ROOM_NAME[3]);
+						CheckRoom(4);
+						break;
+			        case "Bắc Giang Room 2" : 
+						System.out.println("ban chon " + TypeData.ROOM_NAME[4]);
+						CheckRoom(5);
+						break;
+			        case "Bắc Giang Room 3" : 
+						System.out.println("ban chon " + TypeData.ROOM_NAME[5]);
+						CheckRoom(6);
+						break;
 			        default : System.out.println("Default");
 		        		break;
 		        }

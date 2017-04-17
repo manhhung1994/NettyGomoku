@@ -69,7 +69,7 @@ public class Server {
 		sdf = new SimpleDateFormat("HH:mm:ss");
 		// ArrayList for the Client list
 		//al = new ArrayList<ClientThread>();
-		roomManager = new RoomManager(4);
+		roomManager = new RoomManager(6);
 	}
 	
 	public void start() throws Exception {
@@ -138,13 +138,12 @@ public class Server {
 
 						@Override
 						protected void channelRead0(ChannelHandlerContext ctx, Object s) throws Exception {
-							
-							//System.out.println(DataPackage.CheckTypeData(s.toString()).equals(TypeData.CHECK_ROOM));
+							//boolean roomFull =roomManager.CheckFull(tempRoom); 
 							if(DataPackage.CheckTypeData(s.toString()).equals(TypeData.CHECK_ROOM))
 							{
 								tempRoom =  DataPackage.RoomChoose(s.toString());
-								System.out.println("temp room" + tempRoom);
-								if(!roomManager.CheckFull(tempRoom))
+								System.out.println("temp room" + roomManager.CheckFull(tempRoom));
+								if(roomManager.CheckFull(tempRoom) == false)
 								{
 									roomManager.getRoom(tempRoom).add(ctx.channel());
 									if(roomManager.getRoom(tempRoom).size()==1)
@@ -158,9 +157,17 @@ public class Server {
 										System.out.println("Set vi tri 2 ");
 									}
 								}
-							}
+								else 
+								{
+									System.out.println("Room Full");
+								}
+							}							
 							else {
 								System.out.println("Khong check room nua");
+							}
+							if(DataPackage.CheckTypeData(s.toString()).equals(TypeData.CHECK_ROOM))
+							{
+								
 							}
 							Channel incoming = ctx.channel();
 							

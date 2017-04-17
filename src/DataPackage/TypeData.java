@@ -15,4 +15,6 @@ public class TypeData {
 	public static final String CHECK_ROOM 	= "CheckRoom";
 	public static final String MATRIX 		= "Max";
 	public static final String POSITION 	= "Pos";
+	public static final String CHECKTURN 	= "CTurn";
+
 }

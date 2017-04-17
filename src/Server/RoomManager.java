@@ -11,7 +11,7 @@ public class RoomManager{
 	
 	public RoomManager(int leng)
 	{
-		Rooms = new DefaultChannelGroup[4];
+		Rooms = new DefaultChannelGroup[leng];
 		for(int i=0;i<leng ; i++)
 		{
 			Rooms[i] = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);

@@ -6,20 +6,21 @@ import java.awt.Event;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Point;
-import java.sql.Struct;
+import java.io.IOException;
 import java.util.Vector;
-
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.event.UndoableEditEvent;
 import javax.swing.undo.UndoManager;
-
-import DataPackage.DataPackage;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
 import DataPackage.TypeData;
-import Server.RoomManager;
+import Event.*;
+import Jackson.JacksonBean;
+import Jackson.JacksonDecoder;
+import Jackson.JacksonEncoder;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -27,18 +28,14 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.nio.NioEventLoop;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.handler.codec.Delimiters;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
+
 public class CaroGraphics extends JPanel {
 
-	
-	
 	private static final long serialVersionUID = 1L;
 	public final static int sizeCell = 30;
 	public final static int row = 18;
@@ -53,7 +50,7 @@ public class CaroGraphics extends JPanel {
 
 	private MyImage myImage = new MyImage();
 	private Icon iconActive;
-	private Image _image;
+
 	private UndoManager undoManager = new UndoManager();
 	protected Vector<Point> pointVector;
 	
@@ -62,8 +59,8 @@ public class CaroGraphics extends JPanel {
 	public JTextField PORT = new JTextField("9696");
 	public JTextField playerName = new JTextField("Tu Manh Hung");
 	
-	private String chooseRoom;
-	private Channel channel;
+	
+	public static Channel channel;
 
 	private int winer = 0;
 
@@ -90,6 +87,13 @@ public class CaroGraphics extends JPanel {
 		pointVector2 = new Vector<MaxtrixPoint>();
 		repaint();
 	}
+	public EventGame newEvent(int eventType,String data)
+	{
+		EventGame event = new EventGame();
+		event.setData(data);
+		event.setEventType(eventType);
+		return event;
+	}
 	private void connectDialog()
 	{
 
@@ -101,7 +105,6 @@ public class CaroGraphics extends JPanel {
 
 		int option = JOptionPane.showConfirmDialog(null, message, "Connect", JOptionPane.OK_CANCEL_OPTION);
 		if (option == JOptionPane.OK_OPTION) {
-			
 			
 		    if (true) {
 		    	new ClientRunning().start();
@@ -153,13 +156,12 @@ public class CaroGraphics extends JPanel {
 	
 	public void CheckRoom(int index)
 	{
-		Send(TypeData.CHECK_ROOM + "-" + index);
+		
 	}
 	class ClientRunning extends Thread {
 		public void run() {
 			EventLoopGroup group = new NioEventLoopGroup();
 			try {
-				//client.start();
 				Bootstrap bootStrap = new Bootstrap()
 				.group(group)
 				.channel(NioSocketChannel.class)
@@ -169,49 +171,55 @@ public class CaroGraphics extends JPanel {
 					protected void initChannel(SocketChannel sockChannel) throws Exception {
 						// TODO Auto-generated method stub
 						ChannelPipeline pipeline = sockChannel.pipeline();
-						pipeline.addLast("framer", new DelimiterBasedFrameDecoder(8192, Delimiters.lineDelimiter()));
-				        pipeline.addLast("decoder", new StringDecoder());
-				        pipeline.addLast("encoder", new StringEncoder());
-				        pipeline.addLast("handler", new SimpleChannelInboundHandler<String>() {
+				        pipeline.addLast(new JacksonEncoder());
+				        pipeline.addLast(new JacksonDecoder<EventGame>(EventGame.class));
+				        pipeline.addLast(new SimpleChannelInboundHandler<Object>() {
 
 							@Override
-							public void channelRead0(ChannelHandlerContext ctx, String data) throws Exception {
-								switch(DataPackage.CheckTypeData(data.toString()))
-								{
-									case TypeData.MATRIX :
-
-										if(!pointVector2.contains(new MaxtrixPoint(StringToPoint(data), true)))
-												
-										{
-											pointVector2.addElement(new MaxtrixPoint(StringToPoint(data), false));
-											repaint();
-										}
-										break;
-									case TypeData.POSITION :
-										if(isPlayerRoot(data))
-										{
-											_image = myImage.imgCross;
-										}
-										else _image = myImage.imgNought;
-								}								
-								
-								System.out.println( data);
+							public void channelRead0(ChannelHandlerContext ctx, Object obj) throws Exception {
+								ChannelReadController(ctx.channel(), obj);
+								EventGame event = (EventGame)obj;
+								System.out.println("[Type: " + event.getEventType() + "]" + "\n" +
+												   "[Data: " + event.getData()+ "]" 
+								);
 							}			        	
 						});
+						
 					}										
 				});
-				System.out.println("Connected");
 				channel = bootStrap.connect(ipAddress.getText(), Integer.parseInt(PORT.getText())).sync().channel();
 				
+				
+				SendEventToServer(newEvent(EventType.CONNECT,""));
+						
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
+
 				e.printStackTrace();
-			}
-			
-			
+			}			
 		}
 	}
-	
+	public void ChannelReadController(Channel channel, Object obj)
+	{
+		int eventType = checkEventType(obj);
+		switch (eventType) {
+		case EventType.LOG_IN_SUCCESS:
+			onLoginSuccess();
+			break;
+
+		default:
+			break;
+		}
+	}
+	private void onLoginSuccess() {
+		System.out.println("Ve box chon room");
+		
+	}
+
+	public int checkEventType(Object obj)
+	{
+		EventGame event = (EventGame)obj;
+		return event.getEventType();
+	}
 	public Point StringToPoint(String data)
 	{
 		
@@ -236,9 +244,10 @@ public class CaroGraphics extends JPanel {
 		else playerRoot = false;
 		return playerRoot;
 	}
-	public void Send(String data)
-	{
-		channel.writeAndFlush(data +"\n");
+	public void SendEventToServer(EventGame event)
+	{		
+		channel.write(event);
+		channel.flush();
 	}
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
@@ -253,7 +262,6 @@ public class CaroGraphics extends JPanel {
 
 	private void drawImg(Graphics g) {
 		
-		boolean player = playerRoot;
 		for (int i = 0; i < pointVector2.size(); i++) {
 			Image image = null;
 			if(playerRoot)
@@ -320,12 +328,13 @@ public class CaroGraphics extends JPanel {
 				myImage.getMyImageIcon("active.png"), 20, 20));
 	}
 
-	void actionClick(Point point) {
+	void actionClick(Point point) throws JsonGenerationException, JsonMappingException, IOException {
 		// repaint();
-
-
+		//----------------------
+		
+		// -----------------------
 		Point pointTemp = convertPoint(point);
-		Send(TypeData.MATRIX +"-" +pointTemp.getX() + "-"+ pointTemp.getY());
+		//Send(TypeData.MATRIX +"-" +pointTemp.getX() + "-"+ pointTemp.getY());
 		myTurn = false;
 		if (process.updateMatrix(player, convertPointToMaxtrix(pointTemp))) {
 			//pointVector.addElement(point);

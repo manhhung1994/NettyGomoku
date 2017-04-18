@@ -4,5 +4,13 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
 	<classpathentry kind="lib" path="Libs/netty-all-4.1.9.Final-sources.jar"/>
 	<classpathentry kind="lib" path="Libs/netty-all-4.1.9.Final.jar"/>
+	<classpathentry kind="lib" path="Libs/jackson-all-1.9.0.jar"/>
+	<classpathentry kind="lib" path="Libs/spring-beans-3.2.2.RELEASE.jar"/>
+	<classpathentry kind="lib" path="Libs/spring-context-3.2.2.RELEASE.jar"/>
+	<classpathentry kind="lib" path="Libs/spring-aop-3.2.2.RELEASE.jar"/>
+	<classpathentry kind="lib" path="Libs/spring-core-3.2.2.RELEASE.jar"/>
+	<classpathentry kind="lib" path="Libs/spring-expression-3.2.2.RELEASE.jar"/>
+	<classpathentry kind="lib" path="Libs/jackson-core-asl-1.9.12.jar"/>
+	<classpathentry kind="lib" path="Libs/jackson-mapper-asl-1.9.12.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

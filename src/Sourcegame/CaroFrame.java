@@ -11,6 +11,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -89,7 +90,12 @@ public class CaroFrame extends JFrame implements ActionListener {
 		caroGraphics = new CaroGraphics();
 		caroGraphics.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
-				caroGraphics.actionClick(e.getPoint());
+				try {
+					caroGraphics.actionClick(e.getPoint());
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				//System.out.println("initGraphics" + e.getPoint());
 				if (caroGraphics.getWiner() > 0) {
 					win(caroGraphics.getWiner());

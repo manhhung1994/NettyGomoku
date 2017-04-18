@@ -1,2 +1,5 @@
 eclipse.preferences.version=1
+encoding//src/Client/SimpleChatClient.java=UTF-8
+encoding//src/Jackson/JacksonEncoder.java=UTF-8
+encoding//src/Jackson/JacksonMapper.java=UTF-8
 encoding/<project>=UTF-8

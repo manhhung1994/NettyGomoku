@@ -1,4 +1,4 @@
-package Server;
+package Server.origin;
 
 import java.io.*;
 import java.net.*;
@@ -27,24 +27,13 @@ import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
+import org.codehaus.jackson.map.ObjectMapper;
 /*
  * The server that can be run both as a console application or a GUI
  */
 public class Server {
-	// a unique ID for each connection
-	private static int uniqueId;
-	// an ArrayList to keep the list of the Client
-	//private ArrayList<ClientThread> al;
-	// if I am in a GUI
-	private ServerGUI sg;
-	// to display time
-	private DateFormat sdf;
 	// the port number to listen for connection
 	private int port;
-	// the boolean that will be turned of to stop the server
-	private boolean keepGoing;
-	
-	
 	public static ChannelGroup channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
 	private EventLoopGroup bossGroup = new NioEventLoopGroup(); 
@@ -52,6 +41,7 @@ public class Server {
     
     private RoomManager roomManager ;
     private int tempRoom;
+    private ObjectMapper jackson;
 	/*
 	 *  server constructor that receive the port to listen to for connection as parameter
 	 *  in console
@@ -61,12 +51,9 @@ public class Server {
 	}
 	
 	public Server(int port, ServerGUI sg) {
-		// GUI or not
-		this.sg = sg;
 		// the port
 		this.port = port;
-		// to display hh:mm:ss
-		sdf = new SimpleDateFormat("HH:mm:ss");
+		new SimpleDateFormat("HH:mm:ss");
 		// ArrayList for the Client list
 		//al = new ArrayList<ClientThread>();
 		roomManager = new RoomManager(6);

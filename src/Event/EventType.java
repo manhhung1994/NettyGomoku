@@ -2,7 +2,7 @@ package Event;
 
 
 
-public class Events {
+public class EventType {
 	public static final byte PROTCOL_VERSION=0x01;
 	/**
 	 * Events should <b>NEVER</b> have this type. But event handlers can choose

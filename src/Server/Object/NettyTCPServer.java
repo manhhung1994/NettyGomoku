@@ -1,4 +1,4 @@
-package Server.test;
+package Server.Object;
 
 
 import Event.EventGame;

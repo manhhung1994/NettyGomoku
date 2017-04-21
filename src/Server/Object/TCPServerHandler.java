@@ -1,4 +1,6 @@
-package Server.test;
+package Server.Object;
+import java.beans.EventSetDescriptor;
+
 import Event.EventGame;
 import Event.EventType;
 import Jackson.*;
@@ -37,7 +39,7 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 	private void onConnect(Channel channel) {
 		System.out.println("["+ channel.remoteAddress() + "]" + "connected");
 		//SendEventToClient(channel, newEvent(EventType.LOG_IN_SUCCESS, ""));
-		
+		SendEventToClient(channel, newEvent(EventType.GAME_ROOM_JOIN, "game rom join"));
 	}
 
 	public int checkEventType(Object obj)

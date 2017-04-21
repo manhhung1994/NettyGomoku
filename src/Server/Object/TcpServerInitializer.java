@@ -1,4 +1,4 @@
-package Server.test;
+package Server.Object;
 
 
 import Event.EventGame;
@@ -7,6 +7,7 @@ import Jackson.JacksonEncoder;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.ByteToMessageDecoder;
 
 
 public class TcpServerInitializer extends ChannelInitializer<SocketChannel>{
@@ -19,6 +20,8 @@ public class TcpServerInitializer extends ChannelInitializer<SocketChannel>{
 		pipeline.addLast(new JacksonDecoder<EventGame>(EventGame.class));
 		pipeline.addLast(new TCPServerHandler());
 		
+		
+
         System.out.println("["+socketChannel.remoteAddress() +"] init Channel");
 	}
 }

@@ -1,4 +1,4 @@
-package Sourcegame;
+package Client;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -331,7 +331,7 @@ public class CaroGraphics extends JPanel {
 	void actionClick(Point point) throws JsonGenerationException, JsonMappingException, IOException {
 		// repaint();
 		//----------------------
-		
+			SendEventToServer(newEvent(EventType.CONNECT, ""));
 		// -----------------------
 		Point pointTemp = convertPoint(point);
 		//Send(TypeData.MATRIX +"-" +pointTemp.getX() + "-"+ pointTemp.getY());

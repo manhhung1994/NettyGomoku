@@ -1,4 +1,4 @@
-package Client;
+package Server.Byte;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -9,7 +9,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
  * @author waylau.com
  * @date 2015-2-26
  */
-public class SimpleChatClientHandler extends  SimpleChannelInboundHandler<String> {
+public class ClientHandler extends  SimpleChannelInboundHandler<String> {
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, String s) throws Exception {
 		System.out.println(s);

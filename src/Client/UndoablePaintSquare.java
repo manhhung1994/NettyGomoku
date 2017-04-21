@@ -1,4 +1,4 @@
-package Sourcegame;
+package Client;
 
 import java.awt.Point;
 import java.util.Vector;

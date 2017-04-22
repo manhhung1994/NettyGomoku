@@ -15,7 +15,6 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 
 public class NettyTCPServer implements Server {
 
-	public static final ChannelGroup ALL_CHANNELS = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 	private EventLoopGroup bossGroup = new NioEventLoopGroup(); // (1)
     private EventLoopGroup workerGroup = new NioEventLoopGroup();
 	public NettyTCPServer()
@@ -38,7 +37,7 @@ public class NettyTCPServer implements Server {
            System.out.println("Server started " + port);
            f.channel().closeFuture().sync();
            
-           ALL_CHANNELS.add(f.channel());
+
         } 
      catch (Exception e) 
         {

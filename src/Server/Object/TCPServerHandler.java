@@ -10,38 +10,67 @@ import io.netty.channel.Channel;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
+import io.netty.util.concurrent.GlobalEventExecutor;
 
 public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 
+	public static ChannelGroup ALL_CHANNELS = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, Object obj) throws Exception {
-		EventGame event = (EventGame)obj;
-		System.out.println(event.getEventType());
-		System.out.println(event.getData());
-		
+	
 		ChannelReadController(ctx.channel(), obj);
-		ctx.channel().write(event);
-		ctx.channel().flush();
+		
+        
+	
 	}
 	public void ChannelReadController(Channel channel, Object obj)
 	{
 		int eventType = checkEventType(obj);
+		EventGame eve = (EventGame)obj;
 		switch (eventType) {
 		case EventType.CONNECT:
-			onConnect(channel);
+			onConnect(channel,obj);
 			break;
-
+		case EventType.GAME_ROOM_JOIN :
+			onGameRoomJoin(channel,obj);
+			break;
+		case EventType.ANY :
+			for (Channel ch : ALL_CHANNELS) {
+	            if (ch != channel){
+	                SendEventToClient(ch, newEvent(EventType.ANY, "[" +channel.remoteAddress()+ "] -> : " + eve.getData() ));
+	            } else {
+	            	SendEventToClient(channel, newEvent(EventType.ANY, "[you] " + eve.getData()) );
+	            }
+	        }
+			break;	
 		default:
 			break;
 		}
 	}
-	private void onConnect(Channel channel) {
-		System.out.println("["+ channel.remoteAddress() + "]" + "connected");
-		//SendEventToClient(channel, newEvent(EventType.LOG_IN_SUCCESS, ""));
-		SendEventToClient(channel, newEvent(EventType.GAME_ROOM_JOIN, "game rom join"));
-	}
+	private void onConnect(Channel channel,Object obj) {	
+		System.out.println("onConnect");
+		SendEventToClient(channel, newEvent(EventType.LOG_IN_SUCCESS, "game rom join"));
 
+		
+	}
+	private void onGameRoomJoin(Channel channel,Object obj)
+	{
+		EventGame e = (EventGame)obj;
+		int room = Integer.parseInt(e.getData());
+		if(checkRoomFull(room))
+		{
+			SendEventToClient(channel, newEvent(EventType.GAME_ROOM_JOIN_SUCCESS,""));
+		}
+		System.out.println("onGameRoomJoin");
+		
+	}
+	public boolean checkRoomFull(int room)
+	{
+		return true;
+	}
 	public int checkEventType(Object obj)
 	{
 		EventGame event = (EventGame)obj;
@@ -67,7 +96,10 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
         Channel incoming = ctx.channel();
 		System.out.println("[" + incoming.remoteAddress() + "] Active");
 		
-		SendEventToClient(incoming,newEvent(EventType.LOG_IN_SUCCESS,""));
+		SendEventToClient(ctx.channel(), newEvent(EventType.LOG_IN_SUCCESS, "game rom join"));
+		
+		ALL_CHANNELS.add(incoming);
+		System.out.println("size " + ALL_CHANNELS.size());
 	}
 	public EventGame newEvent(int eventType,String data)
 	{

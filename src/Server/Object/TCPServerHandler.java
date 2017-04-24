@@ -1,5 +1,6 @@
 package Server.Object;
 import java.beans.EventSetDescriptor;
+import java.util.concurrent.TimeUnit;
 
 import Event.EventGame;
 import Event.EventType;
@@ -21,6 +22,7 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, Object obj) throws Exception {
 	
+		System.out.println((EventGame)obj);
 		ChannelReadController(ctx.channel(), obj);
 		
         
@@ -34,6 +36,9 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 		case EventType.CONNECT:
 			onConnect(channel,obj);
 			break;
+		case EventType.LOG_IN:
+			onLogin(channel,obj);
+			break;
 		case EventType.GAME_ROOM_JOIN :
 			onGameRoomJoin(channel,obj);
 			break;
@@ -46,15 +51,27 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 	            }
 	        }
 			break;	
+		
 		default:
 			break;
 		}
 	}
+	
 	private void onConnect(Channel channel,Object obj) {	
 		System.out.println("onConnect");
-		SendEventToClient(channel, newEvent(EventType.LOG_IN_SUCCESS, "game rom join"));
-
 		
+				
+	}
+	
+	private void onLogin(Channel channel, Object obj) {
+		
+		EventGame eve = (EventGame)obj;
+		String data = eve.getData();
+		String[] parts = data.split("-");
+		String part1 = parts[0];
+		String part2 = parts[1]; 
+		if(part1.equals("admin") && part2.equals("admin"))
+		SendEventToClient(channel, newEvent(EventType.LOG_IN_SUCCESS, "connectSu"));
 	}
 	private void onGameRoomJoin(Channel channel,Object obj)
 	{
@@ -62,9 +79,16 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 		int room = Integer.parseInt(e.getData());
 		if(checkRoomFull(room))
 		{
-			SendEventToClient(channel, newEvent(EventType.GAME_ROOM_JOIN_SUCCESS,""));
+			SendEventToClient(channel, newEvent(EventType.GAME_ROOM_JOIN_SUCCESS,getPlayerRoot()));
 		}
 		System.out.println("onGameRoomJoin");
+		
+	}
+	public String getPlayerRoot()
+	{
+		if(ALL_CHANNELS.size()==1) 
+			return "1";
+		else  return "2";
 		
 	}
 	public boolean checkRoomFull(int room)
@@ -96,10 +120,10 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
         Channel incoming = ctx.channel();
 		System.out.println("[" + incoming.remoteAddress() + "] Active");
 		
-		SendEventToClient(ctx.channel(), newEvent(EventType.LOG_IN_SUCCESS, "game rom join"));
-		
 		ALL_CHANNELS.add(incoming);
 		System.out.println("size " + ALL_CHANNELS.size());
+		SendEventToClient(ctx.channel(), newEvent(EventType.CONNECT_SUCCESS, "connect success"));
+		
 	}
 	public EventGame newEvent(int eventType,String data)
 	{

@@ -3,7 +3,7 @@ package Event;
 
 
 public class EventType {
-	public static final byte PROTCOL_VERSION=0x01;
+	//public static final byte PROTCOL_VERSION=0x01;
 	/**
 	 * Events should <b>NEVER</b> have this type. But event handlers can choose
 	 * to have this type to signify that they will handle any type of incoming
@@ -12,7 +12,8 @@ public class EventType {
 	public final static byte ANY = 0x00;
 	
 	// Lifecycle events.
-	public final static byte CONNECT = 0x02;
+	public final static byte CONNECT = 0x01;
+	public final static byte CONNECT_SUCCESS = 0x02;
 	/**
 	 * Similar to LOG_IN but parameters are different. This event is sent from
 	 * client to server.
@@ -25,6 +26,7 @@ public class EventType {
 	 * bytes- password as string bytes - connection key as string bytes -
 	 * optional udp client address as bytes</b>
 	 */
+	
 	public static final byte LOG_IN = 0x08;
 	public static final byte LOG_OUT = 0x0a;
 	public static final byte LOG_IN_SUCCESS = 0x0b;

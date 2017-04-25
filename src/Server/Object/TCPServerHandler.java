@@ -42,12 +42,13 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 		case EventType.GAME_ROOM_JOIN :
 			onGameRoomJoin(channel,obj);
 			break;
-		case EventType.ANY :
+		case EventType.POSSITION :
+			System.out.print(eve.getData());
 			for (Channel ch : ALL_CHANNELS) {
 	            if (ch != channel){
-	                SendEventToClient(ch, newEvent(EventType.ANY, "[" +channel.remoteAddress()+ "] -> : " + eve.getData() ));
+	                SendEventToClient(ch, newEvent(EventType.POSSITION, eve.getData()));
 	            } else {
-	            	SendEventToClient(channel, newEvent(EventType.ANY, "[you] " + eve.getData()) );
+	            	//SendEventToClient(channel, newEvent(EventType.POSSITION, "[you] " + eve.getData()) );
 	            }
 	        }
 			break;	

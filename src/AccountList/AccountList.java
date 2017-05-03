@@ -1,10 +1,7 @@
 package AccountList;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public interface AccountList {
-	Map<String, Integer> accList = new HashMap<String, Integer>();
-	
-	
+	public void addAcc(Account acc);
+	public void removeAcc(Account acc);
+	public Account getAcc(int id);
 }

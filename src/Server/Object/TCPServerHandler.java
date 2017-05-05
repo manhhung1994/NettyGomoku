@@ -113,7 +113,6 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 	private void onGameRoomJoin(Channel channel,Object obj)
 	{
 		
-
 		System.out.println("onGameRoomJoin");
 		EventGame e = (EventGame)obj;
 		int room = Integer.parseInt(e.getData());
@@ -129,45 +128,33 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 		{			
 			if(slot == 1)
 			{
-				All_ACCOUNT.getAcc(id).setRoot(true);				
+				All_ACCOUNT.getAcc(id).setRoot(true);	
+				
 			}
 			if(slot == 2)
 			{
 				All_ACCOUNT.getAcc(id).setRoot(false);
 				
+
 			}			
 			roomFactory.getRoom(room).addPlayer(All_ACCOUNT.getAcc(id));
 			All_ACCOUNT.getAcc(id).setRoom(room);
+			if(roomFactory.getRoom(room).getSize() == 1)
 			SendEventToClient(channel, newEvent(EventType.GAME_ROOM_JOIN_SUCCESS,
-					All_ACCOUNT.getAcc(id).getName() + "-" + Integer.toString(slot) ));
-			System.out.println("room size" + roomFactory.getRoom(room).getSize());
+					All_ACCOUNT.getAcc(id).getName() + "-" + Integer.toString(slot)+  "- " + "null" ));
+			if(roomFactory.getRoom(room).getSize() == 2) 
+				SendEventToClient(channel, newEvent(EventType.GAME_ROOM_JOIN_SUCCESS,
+						All_ACCOUNT.getAcc(id).getName() +  "- "+ Integer.toString(slot) + "-" +"exitedEnemy"));
+			System.out.println("room " + room +" size "+ roomFactory.getRoom(room).getSize());
 			
 			if(roomFactory.getRoom(room).getSize() == 2)
 			{
-				//gui data enemy;
+				//SendEventToClient(channel, newEvent(EventType.ENEMYDATA, "exitedEnemy"));
 				for(Channel ch : roomFactory.getRoom(room).getChannelGroup())
-				{
-					
-					SendEventToClient(ch, newEvent(EventType.ENEMYDATA,
-							"Enemy" +"-" 
-							+ Boolean.toString(All_ACCOUNT.getAcc(id).isReady())));
-					
-					/*
+				{					
+					System.out.println(ALL_CHANNELS.get(ch) + "-" + All_ACCOUNT.getAcc(ALL_CHANNELS.get(ch)).getChannel());
 					if(ch!= channel)
-					{						
-						SendEventToClient(ch, newEvent(EventType.ENEMYDATA,
-										All_ACCOUNT.getAcc(id).getName() +"-" 
-										+ Boolean.toString(All_ACCOUNT.getAcc(id).isReady())));
-						idEnemy = ALL_CHANNELS.get(ch);
-						System.out.println("id enemy " +idEnemy);
-					}
-					else
-					{
-						System.out.println("id enemy 2 : " +idEnemy);
-						SendEventToClient(channel, newEvent(EventType.ENEMYDATA,
-								All_ACCOUNT.getAcc(idEnemy).getName() +"-" 
-								+ Boolean.toString(All_ACCOUNT.getAcc(idEnemy).isReady())));
-					}*/
+						SendEventToClient(ch, newEvent(EventType.ENEMY_JOIN_ROOM, "enemy join"));
 					
 				}
 			}
@@ -179,64 +166,7 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 					"game room join failure"));
 		}
 		
-		/*
-		if(roomFactory.contains(room) == false)
-		{
-			System.out.println("Room ko ton tai");
-			roomFactory.newRoom(room);
-			roomFactory.getRoom(room).addPlayer(All_ACCOUNT.getAcc(id));
-			All_ACCOUNT.getAcc(id).setRoom(room);
-			All_ACCOUNT.getAcc(id).setRoot(true);
-			SendEventToClient(channel, newEvent(EventType.GAME_ROOM_JOIN_SUCCESS,
-					All_ACCOUNT.getAcc(id).getName() +"-" +"nullPlayer2"+ "-" + getPlayerRoot(room)));
-			System.out.println("room size" + roomFactory.getRoom(room).getSize());
-			
-		}
-		else
-		{
-			System.out.println("Room da ton tai");
-			if(!roomFactory.getRoom(room).isFull())				
-			{
-				roomFactory.getRoom(room).addPlayer(All_ACCOUNT.getAcc(id));
-				All_ACCOUNT.getAcc(id).setRoom(room);
-				if(getPlayerRoot(room).equals("2")) // neu la player2
-				{
-					int idPlayer1;
-					All_ACCOUNT.getAcc(id).setRoot(false);
-					for(Channel ch: roomFactory.getRoom(room).getChannelGroup())
-					{
-						if(ch!= channel)
-						{
-							SendEventToClient(ch, newEvent(EventType.PLAYER2_JOINROOM,
-												roomFactory.getRoom(room).getPlayer(id).getName()));
-							idPlayer1 = ALL_CHANNELS.get(ch);
-						}
-						else
-						{
-							// gui cho minh ten cua minh va thang player1
-							SendEventToClient(channel, newEvent(EventType.GAME_ROOM_JOIN_SUCCESS,
-										All_ACCOUNT.getAcc(id).getName()+"-" + 
-											All_ACCOUNT.getAcc(idPlayer1).getName() + "-" + 
-												getPlayerRoot(room)));
-						}
-							
-						
-					}
-				}
-				
-				
-			}
-			else 
-			{
-				System.out.println("Room da full");
-				SendEventToClient(channel, newEvent(EventType.GAME_ROOM_JOIN_FAILURE,
-						"game room join failure"));
-			}
-			System.out.println("room size" + roomFactory.getRoom(room).getSize());
-		}
 		
-		
-		*/
 		
 	}
 	private int checkSlot(int room)
@@ -282,17 +212,24 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 			if(ch!= channel)
 			{
 				if(eve.getData().equals("lose"))				
-					SendEventToClient(ch, newEvent(EventType.CHECKWIN, "true"));
-				
-				SendEventToClient(ch, newEvent(EventType.ENEMY_LEAVE,"" ));
+				{
+					System.out.println("Check win true" + ch);
+
+					//SendEventToClient(ch, newEvent(EventType.CHECKWIN, "true"));
+					SendEventToClient(ch, newEvent(EventType.ENEMY_LEAVE,"win" ));
+				}
+				else 
+				SendEventToClient(ch, newEvent(EventType.ENEMY_LEAVE,"noWin" ));
 			}
 			else				
 			{			
 				
 				SendEventToClient(channel, newEvent(EventType.ROOM_LEAVE_SUCCESS, ""));
 				System.out.println("ROOM_LEAVE_SUCCESS");
+				
 				roomFactory.getRoom(room).removePlayer(All_ACCOUNT.getAcc(id));
 				All_ACCOUNT.getAcc(id).setRoom(0);
+				System.out.print("size room " + room + "la " + roomFactory.getRoom(room).getSize());
 			}
 		}
 		
@@ -367,13 +304,13 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {  // (3)
     	Channel incoming = ctx.channel();
     	System.out.println("[" + incoming.remoteAddress() + "] handlerRemoved");
+    	
     }
-    
   
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception { // (5)
         Channel incoming = ctx.channel();
-		System.out.println("[" + incoming.remoteAddress() + "] Active");
+		System.out.println("[" + incoming + "] Active");
 		
 
 		SendEventToClient(ctx.channel(), newEvent(EventType.CONNECT_SUCCESS, "connect success"));

@@ -27,6 +27,7 @@ public class DefaultRoom  implements Room{
 	@Override
 	public void removePlayer(Account account) {
 		this.channelGroup.remove(account.getChannel());
+		account.setRoom(0);
 	}
 
 	@Override

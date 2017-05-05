@@ -1,5 +1,6 @@
 package AccountList;
 
+import Event.Status;
 import io.netty.channel.Channel;
 
 public interface Account {
@@ -15,6 +16,11 @@ public interface Account {
 	public String 	getPass();
 	public Channel 	getChannel();
 	public boolean 	isRoot();
+	public boolean 	isReady();
+	public void		setReady(boolean isReady);
 	public void		setRoot(boolean isRoot);
+	
+	public void setStatus(Status status);
+	public Status getStatus();
 }
 

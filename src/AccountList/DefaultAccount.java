@@ -1,5 +1,6 @@
 package AccountList;
 
+import Event.Status;
 import io.netty.channel.Channel;
 
 public class DefaultAccount  implements Account{
@@ -9,6 +10,8 @@ public class DefaultAccount  implements Account{
 	private Channel channel;
 	private int room;
 	private boolean isRoot;
+	private boolean isReady;
+	private Status stt;
 	public DefaultAccount(int id , Channel channel, String name , String pass) {
 		this.id = id;
 		this.channel = channel;
@@ -73,6 +76,28 @@ public class DefaultAccount  implements Account{
 	@Override
 	public void setRoot(boolean isRoot) {
 		this.isRoot = isRoot;
+		
+	}
+
+	@Override
+	public void setStatus(Status stt) {
+		this.stt = stt;
+		
+	}
+
+	@Override
+	public Status getStatus() {
+		return this.stt;
+	}
+
+	@Override
+	public boolean isReady() {
+		return this.isReady;
+	}
+
+	@Override
+	public void setReady(boolean isReady) {
+		this.isReady = isReady;
 		
 	}
 	

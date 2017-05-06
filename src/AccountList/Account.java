@@ -14,6 +14,8 @@ public interface Account {
 	public int 		getID();
 	public String 	getName();
 	public String 	getPass();
+	public String 	getNickname();
+	
 	public Channel 	getChannel();
 	public boolean 	isRoot();
 	public boolean 	isReady();

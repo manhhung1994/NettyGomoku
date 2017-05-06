@@ -7,16 +7,18 @@ public class DefaultAccount  implements Account{
 	private int id;
 	private String name;
 	private String pass;
+	private String nickname;
 	private Channel channel;
 	private int room;
 	private boolean isRoot;
 	private boolean isReady;
 	private Status stt;
-	public DefaultAccount(int id , Channel channel, String name , String pass) {
+	public DefaultAccount(int id , Channel channel, String name , String pass,String nickname) {
 		this.id = id;
 		this.channel = channel;
 		this.name = name;
 		this.pass = pass;
+		this.nickname = nickname;
 	}
 	
 	@Override
@@ -99,6 +101,11 @@ public class DefaultAccount  implements Account{
 	public void setReady(boolean isReady) {
 		this.isReady = isReady;
 		
+	}
+
+	@Override
+	public String getNickname() {
+		return this.nickname;
 	}
 	
 	

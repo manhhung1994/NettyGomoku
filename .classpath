@@ -12,5 +12,6 @@
 	<classpathentry kind="lib" path="Libs/spring-expression-3.2.2.RELEASE.jar"/>
 	<classpathentry kind="lib" path="Libs/jackson-core-asl-1.9.12.jar"/>
 	<classpathentry kind="lib" path="Libs/jackson-mapper-asl-1.9.12.jar"/>
+	<classpathentry kind="lib" path="Libs/mysql-connector-java-5.1.42-bin.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

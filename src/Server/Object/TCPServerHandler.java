@@ -6,6 +6,8 @@ import AccountList.Account;
 import AccountList.AccountList;
 import AccountList.DefaultAccount;
 import AccountList.DefaultAccountList;
+import Database.DefaultSQL;
+import Database.MySQL;
 import Event.EventGame;
 import Event.EventType;
 import Event.Status;
@@ -13,17 +15,15 @@ import Room.DefaultRoom;
 import Room.DefaultRoomFactory;
 import Room.Room;
 import Room.RoomFactory;
-import Server.origin.PlayerData;
+
 import io.netty.channel.Channel;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.group.ChannelGroup;
-import io.netty.channel.group.DefaultChannelGroup;
-import io.netty.util.concurrent.GlobalEventExecutor;
+
 
 public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
-
+	public static MySQL myDatabase = new DefaultSQL();
 	
 	public static Hashtable<Channel, Integer> ALL_CHANNELS = new Hashtable<Channel,Integer>();
 	public static Hashtable<Integer, Account> accMap = new Hashtable<Integer, Account>();
@@ -50,6 +50,9 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 		case EventType.LOG_IN:
 			onLogin(channel,obj);
 			break;
+		case EventType.REGISTER:
+			onRegister(channel,obj);
+			break;
 		case EventType.GAME_ROOM_JOIN :
 			onGameRoomJoin(channel,obj);
 			break;
@@ -74,41 +77,48 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 		
 				
 	}
-	
-	private void onLogin(Channel channel, Object obj) {								
+	private void onRegister(Channel channel,Object obj)
+	{
+		System.out.println("onRegister");
 		EventGame eve = (EventGame)obj;
-		Account acc;
+		String[] tokens = eve.getData().split("-");
+		System.out.println(tokens[0] + tokens[1] + tokens[2]);
+		if(myDatabase.newAcc(tokens[0], tokens[1], tokens[2]))
+		{
+			System.out.println("dang ky thanh cong");
+			SendEventToClient(channel, newEvent(EventType.REGISTER_SUCCESS, ""));
+		}
+		else 
+		{
+			System.out.println("dang ky that bai");
+			SendEventToClient(channel, newEvent(EventType.REGISTER_FAILURE, ""));
+
+		}
+	}
+	private  void onLogin(Channel channel, Object obj) {								
+		EventGame eve = (EventGame)obj;
 		
-		Enumeration accElements = accMap.elements();
-		boolean isExits = false;
 		String data = eve.getData();
 		String[] parts = data.split("-");
-		String part1 = parts[0];
-		String part2 = parts[1]; 
-		//System.out.println(part1 + part2); 
-		while(accElements.hasMoreElements()) {
-	         acc = (Account) accElements.nextElement();
-	         if(accMap.get(acc.getID()).getName().equals(part1) 
-	        && accMap.get(acc.getID()).getPass().equals(part2))
-	         {
-	        	/* System.out.println(accMap.get(acc.getID()).getName() + 
-	        			 accMap.get(acc.getID()).getPass() );
-	        	 */
-
-	        	 ALL_CHANNELS.put(channel,acc.getID());
-
-	        	 All_ACCOUNT.addAcc(new DefaultAccount(acc.getID(),channel,acc.getName(),acc.getPass()));
-	        	 isExits =true;	        	 
-	         }
-	      }
-		System.out.println(isExits);
-		if(isExits)
-			{
-				SendEventToClient(channel, newEvent(EventType.LOG_IN_SUCCESS, "loginsucces"));
-				
-			}
-		else 
+		String userName = parts[0];
+		String pass = parts[1]; 
+		int id = myDatabase.checkAcc(userName, pass);
+		
+		//neu id ton tai va id ko online
+		if(id !=0 && !myDatabase.getOnline(id)) 
+		{
+			SendEventToClient(channel, newEvent(EventType.LOG_IN_SUCCESS, "loginsucces"));
+			ALL_CHANNELS.put(channel,id);
+			All_ACCOUNT.addAcc(new DefaultAccount(id,channel,myDatabase.getName(id),myDatabase.getPass(id),	myDatabase.getNickName(id)));
+			myDatabase.setOnline(id, true);
+			System.out.println("size map " +accMap.size());
+			
+		}
+		else
+		{
+			
 			SendEventToClient(channel, newEvent(EventType.LOG_IN_FAILURE, "loginfail"));
+		}
 	}
 	private void onGameRoomJoin(Channel channel,Object obj)
 	{

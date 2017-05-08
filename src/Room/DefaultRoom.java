@@ -70,6 +70,18 @@ public class DefaultRoom  implements Room{
 			else return false;
 		}
 	}
+	@Override
+	public void resetMatrix() {
+		System.out.println("matrix leng" + matrix.length);
+		for (int i = 0; i < matrix.length; i++) {
+				for(int j =0;j<15;j++)
+				{
+					matrix[i][j] = 0;
+				}
+		}
+		
+	}
+	
 
 	
 

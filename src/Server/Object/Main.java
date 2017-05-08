@@ -1,15 +1,13 @@
 package Server.Object;
 
-import AccountList.Account;
-import AccountList.DefaultAccount;
-import io.netty.channel.group.ChannelGroup;
-import io.netty.channel.group.DefaultChannelGroup;
-import io.netty.util.concurrent.GlobalEventExecutor;
+import Database.DefaultSQL;
+import Database.MySQL;
 
 public class Main {
 
-	
+	static MySQL myDatabase = new DefaultSQL();
 	public static void main(String[] args) throws Exception {
+		myDatabase.resetAll();
 		NettyTCPServer tcpServer  = new  NettyTCPServer(); 
 		tcpServer.startServer(9696);
 		

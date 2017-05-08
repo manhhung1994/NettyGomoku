@@ -20,24 +20,25 @@ public class test {
 					+" (id, username, password,nickname)"
 				+" values ('16', 'hungtm', '123', 'MạnhHưng')";
 		String edit = "update user "
-				+" set online ='online'"
-				+" where id = 3";
+				+" set online ='offline'"
+				+" where id = 2";
 	
 		String del = "delete from user where iduser =1";
 		
 		String exit = "where username = 'hungtm'";
 		          
 		int result = mySta.executeUpdate(edit);
-		System.out.println(result);
+		//System.out.println(result);
 			
 		
-		ResultSet myRs = mySta.executeQuery("select * from user");
+		ResultSet myRs = mySta.executeQuery("select * from user where id = '1'");
+
 		
 		
 		while(myRs.next())
 		{
-			System.out.println(myRs.getString("iduser")+myRs.getString("username") + myRs.getString("nickname"));
-			count++;
+			System.out.println(myRs.getString("id")+myRs.getString("username") + myRs.getString("nickname"));
+			
 		}
 		
 	} catch (Exception e) {

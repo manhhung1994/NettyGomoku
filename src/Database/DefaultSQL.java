@@ -61,16 +61,15 @@ public class DefaultSQL implements MySQL {
 	}
 	@Override
 	public String getName(int id) {
-		int count = 0;
 		try {
-			myRs= myStatement.executeQuery("select * from user");
+			myStatement = myConnection.createStatement();
+			String sql = "select *from user where id ='" + id +"'";
+			myRs = myStatement.executeQuery(sql);
 			while(myRs.next())
 			{
-				count ++;
-				if(myRs.getInt("id") == count)
-					return myRs.getString("username");
-								
+				return myRs.getString("username");
 			}
+			
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
@@ -78,16 +77,15 @@ public class DefaultSQL implements MySQL {
 	}
 	@Override
 	public String getPass(int id) {
-		int count = 0;
 		try {
-			myRs= myStatement.executeQuery("select * from user");
+			myStatement = myConnection.createStatement();
+			String sql = "select *from user where id ='" + id +"'";
+			myRs = myStatement.executeQuery(sql);
 			while(myRs.next())
 			{
-				count ++;
-				if(myRs.getInt("id") == count)
-					return myRs.getString("password");
-								
+				return myRs.getString("password");
 			}
+			
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
@@ -95,16 +93,15 @@ public class DefaultSQL implements MySQL {
 	}
 	@Override
 	public String getNickName(int id) {
-		int count = 0;
 		try {
-			myRs= myStatement.executeQuery("select * from user");
+			myStatement = myConnection.createStatement();
+			String sql = "select *from user where id ='" + id +"'";
+			myRs = myStatement.executeQuery(sql);
 			while(myRs.next())
 			{
-				count ++;
-				if(myRs.getInt("id") == count)
-					return myRs.getString("nickname");
-								
+				return myRs.getString("nickname");
 			}
+			
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
@@ -113,22 +110,21 @@ public class DefaultSQL implements MySQL {
 	@Override
 	public boolean setOnline(int id,boolean isOline) {
 
-		try {
-			String edit;
-			myConnection =  DriverManager.getConnection(myUrl,user,pass);
+		try {	
+			int result =0;
 			myStatement = myConnection.createStatement();
-			myRs= myStatement.executeQuery("select * from user");
 			if(isOline)
-			 edit= "update user "
-					+" set online ='online'"
-					+" where id = " + id;
-			else edit= "update user "
-					+" set online ='offline'"
-					+" where id = " + id;
-			int result = myStatement.executeUpdate(edit);
-			
-			if(result ==1 ) return true;
+			{
+				result = myStatement.executeUpdate("update user "+" set online ='online'"+" where id = " + id);
+				
+			}
+			else
+			{
+				result = myStatement.executeUpdate("update user "+" set online ='offline'"+" where id = " + id);
+			}
+			if(result==1) return true;
 			else return false;
+			
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
@@ -136,20 +132,44 @@ public class DefaultSQL implements MySQL {
 	}
 	@Override
 	public boolean getOnline(int id) {
-		int count = 0;
+
 		try {
-			myRs= myStatement.executeQuery("select * from user");
+			myStatement = myConnection.createStatement();
+			String sql = "select *from user where id ='" + id +"'";
+			myRs = myStatement.executeQuery(sql);
 			while(myRs.next())
 			{
-				count ++;
-				if(myRs.getInt("id") == count)
-					System.out.println( myRs.getString("nickname"));
-								
+				if(myRs.getString("online").equals("online")) return true;
+				else return false;
 			}
+			
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
 		return false;
+	}
+	@Override
+	public void resetAll() {
+		try {
+			int count =0;
+			
+			myStatement = myConnection.createStatement();
+			myRs= myStatement.executeQuery("select * from user");
+
+			
+			while(myRs.next())
+			{
+				count++;
+				
+			}
+			
+			for (int i = 0; i < count; i++) {
+				myStatement.executeUpdate("update user set online ='offline' where id = " + i);
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
 	}
 	
 	

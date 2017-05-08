@@ -15,4 +15,5 @@ public interface Room {
 	public ChannelGroup getChannelGroup();
 	public void setFlag(boolean isRoot,int row	, int col);
 	public boolean checkWin(boolean isRoot,int row,int col);
+	public void resetMatrix();
 }

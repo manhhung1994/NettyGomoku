@@ -50,6 +50,9 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 		case EventType.LOG_IN:
 			onLogin(channel,obj);
 			break;
+		case EventType.LOG_OUT:
+			onLogOut(channel,obj);
+			break;
 		case EventType.REGISTER:
 			onRegister(channel,obj);
 			break;
@@ -111,14 +114,25 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 			ALL_CHANNELS.put(channel,id);
 			All_ACCOUNT.addAcc(new DefaultAccount(id,channel,myDatabase.getName(id),myDatabase.getPass(id),	myDatabase.getNickName(id)));
 			myDatabase.setOnline(id, true);
-			System.out.println("size map " +accMap.size());
+			System.out.println(myDatabase.getName(id) + "login");
 			
 		}
 		else
 		{
-			
-			SendEventToClient(channel, newEvent(EventType.LOG_IN_FAILURE, "loginfail"));
+			//if account not exited
+			if(id == 0)
+				SendEventToClient(channel, newEvent(EventType.LOG_IN_FAILURE, "notexit"));
+			// if account is online
+			if(myDatabase.getOnline(id))
+				SendEventToClient(channel, newEvent(EventType.LOG_IN_FAILURE, "online"));
 		}
+	}
+	private  void onLogOut(Channel channel, Object obj) 
+	{
+		
+		int id = ALL_CHANNELS.get(channel);
+		myDatabase.setOnline(id, false);
+		System.out.println(myDatabase.getName(id) +" onlogout");
 	}
 	private void onGameRoomJoin(Channel channel,Object obj)
 	{
@@ -159,14 +173,28 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 			
 			if(roomFactory.getRoom(room).getSize() == 2)
 			{
-				//SendEventToClient(channel, newEvent(EventType.ENEMYDATA, "exitedEnemy"));
+				int id1 = 0;
+				int id2 = 0;
 				for(Channel ch : roomFactory.getRoom(room).getChannelGroup())
 				{					
 					System.out.println(ALL_CHANNELS.get(ch) + "-" + All_ACCOUNT.getAcc(ALL_CHANNELS.get(ch)).getChannel());
 					if(ch!= channel)
-						SendEventToClient(ch, newEvent(EventType.ENEMY_JOIN_ROOM, "enemy join"));
+					{
+						id1 = ALL_CHANNELS.get(ch);
+					}
+					else 
+					{
+						id2 = ALL_CHANNELS.get(channel);
+					}
 					
 				}
+				SendEventToClient(All_ACCOUNT.getAcc(id1).getChannel(), 
+						newEvent(EventType.ENEMY_JOIN_ROOM, myDatabase.getName(id2) + "-" + 
+											All_ACCOUNT.getAcc(id2).isReady()));
+				SendEventToClient(All_ACCOUNT.getAcc(id2).getChannel(), 
+						newEvent(EventType.ENEMY_JOIN_ROOM, myDatabase.getName(id1) + "-" +
+											All_ACCOUNT.getAcc(id1).isReady()));
+
 			}
 		}
 		else 
@@ -203,11 +231,7 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 		return 0;
 		
 	}
-	private String getPlayerRoot(int room)
-	{
-		if(roomFactory.getRoom(room).getSize() == 1 ) return "1";
-		else return "2";
-	}
+
 	private void onGameRoomLeave(Channel channel , Object obj)
 	{
 		System.out.println("onGameRoomLeave");
@@ -249,20 +273,17 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 		int room = All_ACCOUNT.getAcc(id).getRoom();
 		roomFactory.getRoom(room).getPlayer(id).setStatus(Status.READY);
 		SendEventToClient(channel, newEvent(EventType.READY_SUCCESS, ""));
-		EventGame eve = (EventGame)obj;
+		All_ACCOUNT.getAcc(id).setReady(true);
+
+		if(roomFactory.getRoom(room).getSize() == 2)
+			roomFactory.getRoom(room).resetMatrix();
+		for(Channel ch : roomFactory.getRoom(room).getChannelGroup())
+		{
+			if(ch!= channel)
+				SendEventToClient(ch, newEvent(EventType.ENEMY_READY, ""));
+		}
 		
-		if(eve.getData().equals("player2"))
-		{
-			for(Channel ch : roomFactory.getRoom(room).getChannelGroup())
-			{
-				if(ch!= channel)
-					SendEventToClient(ch, newEvent(EventType.PLAYER2_READY, ""));
-			}
-		}
-		else
-		{
-			
-		}
+		
 	}
 	
 	private void onPossition(Channel channel, Object obj)
@@ -286,15 +307,21 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 			if(ch!= channel)
 			{
 				// gui cho enemy
-				SendEventToClient(ch, newEvent(EventType.POSSITION, eve.getData()));
+				
 				if(checkWin) 
-					SendEventToClient(ch, newEvent(EventType.CHECKWIN, "false"));
+				{
+					SendEventToClient(ch, newEvent(EventType.GAME_OVER, ""));
+					System.out.println("Gui gameover");
+				}
+				SendEventToClient(ch, newEvent(EventType.POSSITION, eve.getData()));
+				
 			}
+			
 			else 
 			{
-				// gui cho minh
+				//gui cho minh
 				if(checkWin)
-					SendEventToClient(ch, newEvent(EventType.CHECKWIN, "true"));
+					SendEventToClient(ch, newEvent(EventType.WIN, ""));
 			}
 		}
 		

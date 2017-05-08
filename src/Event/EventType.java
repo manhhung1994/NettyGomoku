@@ -44,6 +44,8 @@ public class EventType {
 	public static final byte REGISTER 			= 0x20;
 	public static final byte REGISTER_SUCCESS 	= 0x21;
 	public static final byte REGISTER_FAILURE 	= 0x22;
-
-
+	
+	public static final byte ENEMY_READY 		= 0x23;
+	public static final byte GAME_OVER 			= 0x24;
+	public static final byte WIN				= 0x25;
 }

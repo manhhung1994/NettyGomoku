@@ -8,6 +8,7 @@ public interface MySQL {
 	public String getNickName(int id);
 	public boolean setOnline(int id,boolean isOnline);
 	public boolean getOnline(int id);
+	public void resetAll();
 	static String myUrl = "jdbc:mysql://localhost:3306/users";
 	static String user = "root";
 	static String pass = "hungcuong";

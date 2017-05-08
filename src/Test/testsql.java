@@ -10,14 +10,11 @@ import Database.MySQL;
 
 public class testsql {
 	public static MySQL myDatabase = new DefaultSQL();
-	public static void main(String[] args) {
-		//System.out.println(myDatabase.getOnline(1));
-		
-		
 	
-		myDatabase.newAcc("1", "2", "3");
+	public static void main(String[] args) {
 		
-		
+		//myDatabase.setOnline(5, true);
+		myDatabase.resetAll();
 	}
 
 }

@@ -55,7 +55,7 @@ public class DefaultSQL implements MySQL {
 								
 			}
 		} catch (Exception e) {
-			// TODO: handle exception
+			
 		}
 		return 0;
 	}
@@ -71,7 +71,7 @@ public class DefaultSQL implements MySQL {
 			}
 			
 		} catch (Exception e) {
-			// TODO: handle exception
+			
 		}
 		return "";
 	}
@@ -87,7 +87,7 @@ public class DefaultSQL implements MySQL {
 			}
 			
 		} catch (Exception e) {
-			// TODO: handle exception
+			
 		}
 		return "";
 	}
@@ -103,7 +103,7 @@ public class DefaultSQL implements MySQL {
 			}
 			
 		} catch (Exception e) {
-			// TODO: handle exception
+			
 		}
 		return "";
 	}
@@ -126,7 +126,7 @@ public class DefaultSQL implements MySQL {
 			else return false;
 			
 		} catch (Exception e) {
-			// TODO: handle exception
+			
 		}
 		return false;
 	}
@@ -144,30 +144,61 @@ public class DefaultSQL implements MySQL {
 			}
 			
 		} catch (Exception e) {
-			// TODO: handle exception
+			
 		}
 		return false;
 	}
 	@Override
 	public void resetAll() {
 		try {
-			int count =0;
 			
 			myStatement = myConnection.createStatement();
-			myRs= myStatement.executeQuery("select * from user");
-
+			myRs= myStatement.executeQuery("select * from user");		
+			while(myRs.next())
+			{				
+				myStatement.executeUpdate("update user set online ='offline'");
+			}
 			
+		} catch (Exception e) {
+			
+		}
+		
+	}
+	@Override
+	public int getScore(int id) {
+		try {
+			myStatement = myConnection.createStatement();
+			String sql = "select *from user where id ='" + id +"'";
+			myRs = myStatement.executeQuery(sql);
 			while(myRs.next())
 			{
-				count++;
-				
+				int score = myRs.getInt("score");
+				return score;
 			}
 			
-			for (int i = 0; i < count; i++) {
-				myStatement.executeUpdate("update user set online ='offline' where id = " + i);
-			}
 		} catch (Exception e) {
-			// TODO: handle exception
+			
+		}
+		return 0;
+	}
+	@Override
+	public void addScore(int id, int score) {
+		try {
+			myStatement = myConnection.createStatement();
+			String sql = "select *from user where id ='" + id +"'";
+			int currentScore = 0; 
+			myRs = myStatement.executeQuery(sql);
+			while(myRs.next())
+			{
+				 currentScore = myRs.getInt("score");
+				
+			}
+			int newScore = currentScore + score;
+			if(newScore < 0) newScore = 0;	
+			myStatement.executeUpdate("update user "+" set score ='" + newScore +"'" +" where id = " + id);
+			
+		} catch (Exception e) {
+			
 		}
 		
 	}

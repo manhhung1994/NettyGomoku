@@ -1,5 +1,5 @@
-package Server.Object;
-import java.util.Enumeration;
+package Server;
+
 import java.util.Hashtable;
 
 import AccountList.Account;
@@ -11,7 +11,6 @@ import Database.MySQL;
 import Event.EventGame;
 import Event.EventType;
 import Event.Status;
-import Room.DefaultRoom;
 import Room.DefaultRoomFactory;
 import Room.Room;
 import Room.RoomFactory;
@@ -42,11 +41,15 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 	public void ChannelReadController(Channel channel, Object obj)
 	{
 		int eventType = checkEventType(obj);
-		EventGame eve = (EventGame)obj;
+
 		switch (eventType) {
 		case EventType.CONNECT:
 			onConnect(channel,obj);
 			break;
+		case EventType.DISCONNECT:
+			onDisconnect(channel,obj);
+			break;
+			
 		case EventType.LOG_IN:
 			onLogin(channel,obj);
 			break;
@@ -68,7 +71,9 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 		case EventType.POSSITION :
 			onPossition(channel, obj);
 			break;	
-		
+		case EventType.REPLAY :
+			onReplay(channel,obj);
+			break;
 		default:
 			break;
 		}
@@ -77,6 +82,25 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 
 	private void onConnect(Channel channel,Object obj) {	
 		System.out.println("onConnect");
+		
+				
+	}
+	private void onDisconnect(Channel channel,Object obj) {	
+		System.out.println("onDisconnect");
+		int id = 0;
+		
+		if(ALL_CHANNELS.containsKey(channel))
+		{
+			id = ALL_CHANNELS.get(channel);
+			if(myDatabase.setOnline(id, false))
+			{
+				System.out.println(All_ACCOUNT.getAcc(id).getName() + " logout");
+			}
+			else
+			{
+				System.out.println("Khong logout duoc");
+			}
+		}
 		
 				
 	}
@@ -147,7 +171,7 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 		}
 		int slot = checkSlot(room);
 		
-		System.out.print("Slot " + slot);
+		System.out.println("Slot " + slot);
 		if(slot != 0 )
 		{			
 			if(slot == 1)
@@ -163,6 +187,7 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 			}			
 			roomFactory.getRoom(room).addPlayer(All_ACCOUNT.getAcc(id));
 			All_ACCOUNT.getAcc(id).setRoom(room);
+			System.out.println(roomFactory.getRoom(room).getSize() +"xxxx");
 			if(roomFactory.getRoom(room).getSize() == 1)
 			SendEventToClient(channel, newEvent(EventType.GAME_ROOM_JOIN_SUCCESS,
 					All_ACCOUNT.getAcc(id).getName() + "-" + Integer.toString(slot)+  "- " + "null" ));
@@ -234,13 +259,18 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 
 	private void onGameRoomLeave(Channel channel , Object obj)
 	{
-		System.out.println("onGameRoomLeave");
-		int id = ALL_CHANNELS.get(channel);
-		int room = All_ACCOUNT.getAcc(id).getRoom();
+		int id =0;
+		int room = 0;		
+		if(ALL_CHANNELS.get(channel) !=0 )
+		{
+			id = ALL_CHANNELS.get(channel);
+			room = All_ACCOUNT.getAcc(id).getRoom();	
+			System.out.println(All_ACCOUNT.getAcc(id).getName() + "leave room " + room);
+		}
+		
 		EventGame eve = (EventGame)obj;
 
-		
-		
+		if(room!= 0)
 		for(Channel ch : roomFactory.getRoom(room).getChannelGroup())
 		{
 			if(ch!= channel)
@@ -251,6 +281,8 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 
 					//SendEventToClient(ch, newEvent(EventType.CHECKWIN, "true"));
 					SendEventToClient(ch, newEvent(EventType.ENEMY_LEAVE,"win" ));
+					int idEnemy = ALL_CHANNELS.get(ch);
+					myDatabase.addScore(idEnemy, 10);
 				}
 				else 
 				SendEventToClient(ch, newEvent(EventType.ENEMY_LEAVE,"noWin" ));
@@ -301,29 +333,39 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 		System.out.println("isRoot" + isRoot);
 		roomFactory.getRoom(room).setFlag(isRoot, row, col);
 		boolean checkWin = roomFactory.getRoom(room).checkWin(isRoot, row, col);
+		
 		System.out.println("win -" + checkWin);
 		for(Channel ch: roomFactory.getRoom(room).getChannelGroup())
 		{
+			
 			if(ch!= channel)
 			{
-				// gui cho enemy
-				
-				if(checkWin) 
-				{
-					SendEventToClient(ch, newEvent(EventType.GAME_OVER, ""));
-					System.out.println("Gui gameover");
-				}
-				SendEventToClient(ch, newEvent(EventType.POSSITION, eve.getData()));
-				
+					SendEventToClient(ch, newEvent(EventType.POSSITION, eve.getData() + "-" + checkWin));	
+					if(checkWin) 
+					{
+						int idEnemy = ALL_CHANNELS.get(ch);
+						myDatabase.addScore(idEnemy, -10);
+					}
 			}
-			
 			else 
 			{
-				//gui cho minh
-				if(checkWin)
-					SendEventToClient(ch, newEvent(EventType.WIN, ""));
+				if(checkWin) 
+				{
+					SendEventToClient(ch, newEvent(EventType.WIN, ""));	
+					myDatabase.addScore(id, 10);
+				}
+				System.out.println("poss success");
 			}
 		}
+		
+	}
+	private void onReplay(Channel channel , Object obj)
+	{
+		System.out.println("onReplay");
+		int id = ALL_CHANNELS.get(channel);
+		int room = All_ACCOUNT.getAcc(id).getRoom();
+		roomFactory.getRoom(room).resetMatrix();
+		SendEventToClient(channel, newEvent(EventType.REPLAY_SUCCESS, ""));
 		
 	}
 	private int checkEventType(Object obj)
@@ -365,8 +407,27 @@ public class TCPServerHandler extends SimpleChannelInboundHandler<Object> {
 	}
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception { // (6)
-        Channel incoming = ctx.channel();
-		System.out.println("[" + incoming.remoteAddress() + "] Inactive" );
+        Channel channel = ctx.channel();
+        int id;
+        int room = 0;
+        if(ALL_CHANNELS.containsKey(channel))
+        {
+        	id = ALL_CHANNELS.get(channel);
+        	myDatabase.addScore(id, -10);
+        	room = All_ACCOUNT.getAcc(id).getRoom();
+        	System.out.println("room "+room );
+        }
+        if(room!=0)
+        for (Channel  ch : roomFactory.getRoom(room).getChannelGroup()) {
+			if(ch!= channel)
+			{
+				int idEnemy = ALL_CHANNELS.get(channel);
+				myDatabase.addScore(idEnemy, 10);
+				SendEventToClient(ch, newEvent(EventType.ENEMY_LEAVE, "win"));
+				
+			}
+		}
+		System.out.println("[" + channel.remoteAddress() + "] Inactive" );
 	}
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) { 

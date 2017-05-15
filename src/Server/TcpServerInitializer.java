@@ -1,4 +1,4 @@
-package Server.Object;
+package Server;
 
 
 import Event.EventGame;
@@ -7,7 +7,6 @@ import Jackson.JacksonEncoder;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.ByteToMessageDecoder;
 
 
 public class TcpServerInitializer extends ChannelInitializer<SocketChannel>{

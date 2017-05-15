@@ -1,7 +1,7 @@
 package Room;
 
 import AccountList.Account;
-import io.netty.channel.Channel;
+
 import io.netty.channel.group.ChannelGroup;
 
 public interface Room {

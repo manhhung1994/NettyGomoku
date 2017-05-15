@@ -13,8 +13,10 @@ public class testsql {
 	
 	public static void main(String[] args) {
 		
-		//myDatabase.setOnline(5, true);
-		myDatabase.resetAll();
+		System.out.println(1);
+	   
+	    System.exit(0);
+	    System.out.println(2);
 	}
 
 }

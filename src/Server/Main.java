@@ -1,4 +1,4 @@
-package Server.Object;
+package Server;
 
 import Database.DefaultSQL;
 import Database.MySQL;
